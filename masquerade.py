@@ -30,6 +30,8 @@ class Translator:
 		self.dst_iface = dst_iface
 		self.dst_iface_ip = get_if_addr(self.dst_iface)
 
+		self.my_ips = [get_if_addr(iface) for iface in get_if_list()]
+
 		self.connection = {}
 
 	def __call__(self, packet):
@@ -43,8 +45,8 @@ class Translator:
 			dst_ip = packet[IP].fields['dst']
 			dst_port = packet[IP][1].fields.get('dport')
 
-			if src_ip != self.dst_iface_ip and src_ip != self.src_iface_ip:
-				if dst_ip != self.src_iface_ip and dst_ip != self.dst_iface_ip:
+			if src_ip not in self.my_ips:
+				if dst_ip not in self.my_ips:
 
 					altered = packet.copy()
 					if Ether in altered:
