@@ -36,24 +36,25 @@ class Translator:
 		if conf.verb == 1: print packet.summary()
 		if conf.verb >= 2: print packet.show2()
 
-		if IP in packet[0]:
-			src_ip = packet[1].fields['src']
-			src_port = packet[2].fields.get('sport')
+		if IP in packet:
+			src_ip = packet[IP].fields['src']
+			src_port = packet[IP][1].fields.get('sport')
 
-			dst_ip = packet[1].fields['dst']
-			dst_port = packet[2].fields.get('dport')
+			dst_ip = packet[IP].fields['dst']
+			dst_port = packet[IP][1].fields.get('dport')
 
 			if src_ip != self.dst_iface_ip and src_ip != self.src_iface_ip:
 				if dst_ip != self.src_iface_ip and dst_ip != self.dst_iface_ip:
 
 					altered = packet.copy()
-					del(altered[0].src)
-					del(altered[0].dst)
-					del(altered[1].chksum)
+					if Ether in altered:
+						del(altered[Ether].src)
+						del(altered[Ether].dst)
+					del(altered[IP].chksum)
 
 					self.connection[(dst_ip, dst_port, src_port)] = src_ip
 
-					altered[1].fields['src'] = self.dst_iface_ip
+					altered[IP].fields['src'] = self.dst_iface_ip
 
 					sendp(altered, iface=self.dst_iface)
 					if conf.verb == 1: print "-->", altered.summary()
@@ -61,14 +62,15 @@ class Translator:
 
 				if dst_ip == self.dst_iface_ip:
 					altered = packet.copy()
-					del(altered[0].src)
-					del(altered[0].dst)
-					del(altered[1].chksum)
+					if Ether in altered:
+						del(altered[Ether].src)
+						del(altered[Ether].dst)
+					del(altered[IP].chksum)
 
 					new_dst_ip = self.connection.get((src_ip, src_port, dst_port))
 
 					if new_dst_ip is not None:
-						altered[1].fields['dst'] = new_dst_ip
+						altered[IP].fields['dst'] = new_dst_ip
 
 						sendp(altered, iface=self.src_iface)
 						if conf.verb == 1: print "-->", altered.summary()
