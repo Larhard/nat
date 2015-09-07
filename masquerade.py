@@ -41,10 +41,10 @@ class Translator:
 		if conf.verb >= 2: print packet.show2()
 
 		if IP in packet:
-			src_ip = packet[IP].fields['src']
+			src_ip = packet[IP].src
 			src_port = packet[IP][1].fields.get('sport')
 
-			dst_ip = packet[IP].fields['dst']
+			dst_ip = packet[IP].dst
 			dst_port = packet[IP][1].fields.get('dport')
 
 			if src_ip not in self.my_ips:
@@ -58,7 +58,7 @@ class Translator:
 
 					self.connection[(dst_ip, dst_port, src_port)] = src_ip
 
-					altered[IP].fields['src'] = self.dst_iface_ip
+					altered[IP].src = self.dst_iface_ip
 
 					sendp(altered, iface=self.dst_iface)
 					if conf.verb == 1: print "-->", altered.summary()
@@ -74,13 +74,13 @@ class Translator:
 					new_dst_ip = self.connection.get((src_ip, src_port, dst_port))
 
 					if new_dst_ip is not None:
-						altered[IP].fields['dst'] = new_dst_ip
+						altered[IP].dst = new_dst_ip
 
 						sendp(altered, iface=self.src_iface)
 						if conf.verb == 1: print "-->", altered.summary()
 						if conf.verb >= 2: print altered.show2()
 
-				if conf.verb >= 2: print """
+			if conf.verb >= 2: print """
 ----------------------------------------------------------------
 """
 
