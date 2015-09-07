@@ -23,14 +23,16 @@ from scapy.all import *
 
 
 class Translator:
-	def __init__(self, src_iface, dst_iface):
+	def __init__(self, src_iface, dst_iface, interfaces=None):
+		self.interfaces = interfaces or get_if_list()
+
 		self.src_iface = src_iface
 		self.src_iface_ip = get_if_addr(self.src_iface)
 
 		self.dst_iface = dst_iface
 		self.dst_iface_ip = get_if_addr(self.dst_iface)
 
-		self.my_ips = [get_if_addr(iface) for iface in get_if_list()]
+		self.my_ips = [get_if_addr(iface) for iface in self.interfaces]
 
 		self.connection = {}
 
@@ -83,8 +85,8 @@ class Translator:
 """
 
 
-def main(src_iface, dst_iface, *args, **kwargs):
-	sniff(prn=Translator(src_iface=src_iface, dst_iface=dst_iface))
+def main(src_iface, dst_iface, interfaces=None, *args, **kwargs):
+	sniff(prn=Translator(src_iface=src_iface, dst_iface=dst_iface, interfaces=interfaces))
 
 
 if __name__ == '__main__':
@@ -92,10 +94,14 @@ if __name__ == '__main__':
 	parser.add_argument('-s', '--src-iface', help='source interface', required=True)
 	parser.add_argument('-d', '--dst-iface', help='destination interface', required=True)
 	parser.add_argument('-v', '--verbose', help='make me talk', action='count')
+	parser.add_argument('-i', '--interfaces', help='manually specify all interfaces')
 
 	args = parser.parse_args()
 
 	conf.verb = args.verbose
+
+	if args.interfaces:
+		args.interfaces = args.interfaces.split(',')
 
 	main(**vars(args))
 
